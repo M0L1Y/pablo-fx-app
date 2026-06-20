@@ -2,19 +2,15 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const apiKey = process.env.GEMINI_API_KEY;
 
-// Usamos la estructura de función nombrada tradicional que Vercel lee sin problemas
 async function handler(req, res) {
-    // 1. Validar configuración de la clave
     if (!apiKey) {
         return res.status(500).json({ error: "Falta la clave GEMINI_API_KEY en las variables de Vercel." });
     }
 
-    // 2. Soporte para el método GET (Prueba de diagnóstico)
     if (req.method === 'GET') {
         return res.status(200).json({ status: "OK", message: "¡Exportación encontrada! Servidor funcionando perfectamente." });
     }
 
-    // 3. Soporte para el método POST (Envío de mensajes)
     if (req.method === 'POST') {
         try {
             const { message } = req.body;
@@ -43,5 +39,4 @@ async function handler(req, res) {
     return res.status(405).json({ error: "Método no permitido" });
 }
 
-// Exportación explícita para evitar el error de Vercel
 module.exports = handler;
