@@ -10,7 +10,7 @@ export default async function handler(req, res) {
 
     // 2. Soporte para el método GET (Prueba de diagnóstico)
     if (req.method === 'GET') {
-        return res.status(200).json({ status: "OK", message: "Backend nativo corregido y listo." });
+        return res.status(200).json({ status: "OK", message: "Backend nativo corregido y funcionando correctamente." });
     }
 
     // 3. Soporte para el método POST (Envío de mensajes)
@@ -21,7 +21,7 @@ export default async function handler(req, res) {
                 return res.status(400).json({ error: "El mensaje está vacío." });
             }
 
-            // Inicialización usando exactamente la clase importada
+            // Inicialización limpia
             const ai = new GoogleGenerativeAI(apiKey);
             const model = ai.getGenerativeModel({ 
                 model: 'gemini-1.5-flash',
