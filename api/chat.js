@@ -1,16 +1,19 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const apiKey = process.env.GEMINI_API_KEY;
 
-async function handler(req, res) {
+export default async function handler(req, res) {
+    // Validar configuración de la clave
     if (!apiKey) {
         return res.status(500).json({ error: "Falta la clave GEMINI_API_KEY en las variables de Vercel." });
     }
 
+    // Soporte para método GET (Prueba de diagnóstico)
     if (req.method === 'GET') {
-        return res.status(200).json({ status: "OK", message: "¡Exportación encontrada! Servidor funcionando perfectamente." });
+        return res.status(200).json({ status: "OK", message: "API nativa conectada correctamente." });
     }
 
+    // Soporte para método POST (Envío de mensajes)
     if (req.method === 'POST') {
         try {
             const { message } = req.body;
@@ -38,5 +41,3 @@ async function handler(req, res) {
 
     return res.status(405).json({ error: "Método no permitido" });
 }
-
-module.exports = handler;

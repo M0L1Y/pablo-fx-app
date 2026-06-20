@@ -63,7 +63,7 @@
             background-color: #121214;
             border: 1px solid #29292e;
             border-radius: 6px;
-            color: white; /* ✅ CORREGIDO: Ahora el texto será blanco */
+            color: #ffffff;
             font-size: 1rem;
         }
         input:focus { border-color: #04d361; outline: none; }
@@ -122,7 +122,6 @@
             appendMessage(text, true);
             userInput.value = '';
 
-            // Mensaje temporal de carga
             const loadingDiv = document.createElement('div');
             loadingDiv.classList.add('message', 'bot-message');
             loadingDiv.innerText = 'Escribiendo...';
@@ -130,24 +129,29 @@
             chatContainer.scrollTop = chatContainer.scrollHeight;
 
             try {
-                // LLAMADA RELATIVA CORRECTA PARA VERCEL
                 const response = await fetch('/api/chat', {
                     method: 'POST',
-                    headers: { '欽ontent-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json'
+                    },
                     body: JSON.stringify({ message: text })
                 });
 
                 const data = await response.json();
-                chatContainer.removeChild(loadingDiv);
+                if (chatContainer.contains(loadingDiv)) {
+                    chatContainer.removeChild(loadingDiv);
+                }
 
                 if (data.reply) {
                     appendMessage(data.reply, false);
                 } else {
-                    appendMessage('Lo siento, hubo un problema al procesar la respuesta.', false);
+                    appendMessage('Lo siento, el servidor no devolvió una respuesta válida.', false);
                 }
             } catch (error) {
                 console.error(error);
-                chatContainer.removeChild(loadingDiv);
+                if (chatContainer.contains(loadingDiv)) {
+                    chatContainer.removeChild(loadingDiv);
+                }
                 appendMessage('Error de conexión con el asistente.', false);
             }
         }
