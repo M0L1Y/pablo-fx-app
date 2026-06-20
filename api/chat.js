@@ -2,8 +2,7 @@ module.exports = async function handler(req, res) {
     res.setHeader('Content-Type', 'application/json');
 
     // Clave quemada directamente para saltarnos a Vercel
-    const apiKey = "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";
-
+const apiKey = process.env.GROQ_API_KEY ? process.env.GROQ_API_KEY.trim() : null;
     if (req.method === 'GET') {
         return res.status(200).json({ status: "OK", message: "Servidor Groq forzado listo." });
     }
