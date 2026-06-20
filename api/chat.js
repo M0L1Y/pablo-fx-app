@@ -3,22 +3,23 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const apiKey = process.env.GEMINI_API_KEY;
 
 module.exports = async function handler(req, res) {
-    // 1. Validar si la clave existe
+    // Asegurar que las cabeceras permitan JSON correctamente
+    res.setHeader('Content-Type', 'application/json');
+
     if (!apiKey) {
-        return res.status(500).json({ error: "Falta la clave GEMINI_API_KEY en las variables de Vercel." });
+        return res.status(500).json({ reply: "Falta la clave GEMINI_API_KEY en Vercel." });
     }
 
-    // 2. Diagnóstico rápido
     if (req.method === 'GET') {
-        return res.status(200).json({ status: "OK", message: "Conexión clásica lista." });
+        return res.status(200).json({ status: "OK", message: "Servidor clásico respondiendo." });
     }
 
-    // 3. Responder al Chat
     if (req.method === 'POST') {
         try {
-            const { message } = req.body;
+            // Validar que el cuerpo de la petición exista
+            const message = req.body && req.body.message;
             if (!message) {
-                return res.status(400).json({ error: "El mensaje está vacío." });
+                return res.status(400).json({ reply: "El mensaje llegó vacío al servidor." });
             }
 
             const ai = new GoogleGenerativeAI(apiKey);
@@ -34,10 +35,13 @@ module.exports = async function handler(req, res) {
             return res.status(200).json({ reply: respuestaIA });
 
         } catch (error) {
-            console.error(error);
-            return res.status(500).json({ error: "Error en Gemini", detalle: error.message });
+            console.error("Error interno en Gemini:", error);
+            return res.status(500).json({ 
+                reply: "Error al conectar con Gemini.", 
+                detalle: error.message 
+            });
         }
     }
 
-    return res.status(405).json({ error: "Método no permitido" });
+    return res.status(405).json({ reply: "Método no permitido" });
 };
