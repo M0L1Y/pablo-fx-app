@@ -1,6 +1,7 @@
 {
   "name": "pablo-fx-app",
   "version": "1.0.0",
+  "type": "module",
   "description": "Piloto de agente para TDAH y ansiedad",
   "main": "api/chat.js",
   "dependencies": {
