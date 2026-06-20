@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PABLO_FX - Compañero de Calma</title>
+    <style>
+        body {
+            background-color: #0b131f;
+            color: #e2e8f0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .chat-container {
+            width: 100%;
+            max-width: 450px;
+            background: #111a2e;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.15);
+            border: 1px solid #1f2e4d;
+            display: flex;
+            flex-direction: column;
+            height: 80vh;
+            overflow: hidden;
+        }
+        .chat-header {
+            background: linear-gradient(135deg, #00f2fe, #4facfe);
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            color: #0b131f;
+            font-size: 1.2rem;
+        }
+        .chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .message {
+            padding: 10px 14px;
+            border-radius: 12px;
+            max-width: 80%;
+            line-height: 1.4;
+        }
+        .user {
+            background-color: #1f355e;
+            align-self: flex-end;
+            color: #00f2fe;
+        }
+        .agent {
+            background-color: #1a2333;
+            align-self: flex-start;
+            border: 1px solid #2e3c56;
+        }
+        .chat-input-area {
+            display: flex;
+            padding: 15px;
+            background: #0d1726;
+            gap: 10px;
+        }
+        input {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #25395f;
+            background: #16223f;
+            color: white;
+            outline: none;
+        }
+        input:focus { border-color: #00f2fe; }
+        button {
+            background: #00f2fe;
+            color: #0b131f;
+            border: none;
+            padding: 12px 18px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button:hover { background: #4facfe; }
+    </style>
+</head>
+<body>
+
+<div class="chat-container">
+    <div class="chat-header">PABLO_FX: Modo Desahogo & Calma</div>
+    <div class="chat-messages" id="chat-box">
+        <div class="message agent">Hola. Suelta todo el ruido que llevas en la cabeza aquí. Te escucho sin juzgar. ¿Qué ronda por tu mente?</div>
+    </div>
+    <div class="chat-input-area">
+        <input type="text" id="user-input" placeholder="Escribe tu desahogo o meta aquí...">
+        <button onclick="enviarMensaje()">Enviar</button>
+    </div>
+</div>
+
+<script>
+    async function enviarMensaje() {
+        const input = document.getElementById('user-input');
+        const chatBox = document.getElementById('chat-box');
+        const texto = input.value.trim();
+        
+        if (!texto) return;
+
+        // Añadir mensaje del usuario
+        chatBox.innerHTML += `<div class="message user">${texto}</div>`;
+        input.value = '';
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        try {
+            // Llamamos a nuestra función de Vercel (ruta relativa automática)
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mensaje: texto })
+            });
+            const data = await response.json();
+            
+            // Añadir respuesta del agente
+            chatBox.innerHTML += `<div class="message agent">${data.respuesta}</div>`;
+        } catch (error) {
+            chatBox.innerHTML += `<div class="message agent">Upps, me dio un pequeño ataque de distracción. ¿Me repites?</div>`;
+        }
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+</script>
+</body>
+</html>
