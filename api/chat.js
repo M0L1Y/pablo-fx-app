@@ -1,56 +1,44 @@
-import express from 'express';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const app = express();
-app.use(express.json());
-
-// 1. Inicialización ultra segura del SDK oficial de Google
 const apiKey = process.env.GEMINI_API_KEY;
-const ai = new GoogleGenAI({ apiKey: apiKey });
 
-// 2. RUTA DE DIAGNÓSTICO (Para probar directamente en el navegador)
-app.get('/api/chat', (req, res) => {
+export default async function handler(req, res) {
+    // 1. Validar configuración de la clave
     if (!apiKey) {
-        return res.status(500).json({ 
-            status: "Error", 
-            message: "La variable GEMINI_API_KEY no está configurada en Vercel." 
-        });
+        return res.status(500).json({ error: "Falta la clave GEMINI_API_KEY en las variables de Vercel." });
     }
-    return res.status(200).json({ 
-        status: "OK", 
-        message: "El servidor de la API está vivo y listo para recibir mensajes POST." 
-    });
-});
 
-// 3. RUTA PRINCIPAL DEL CHAT
-app.post('/api/chat', async (req, res) => {
-    try {
-        const { message } = req.body;
+    // 2. Soporte para el método GET (Prueba de diagnóstico)
+    if (req.method === 'GET') {
+        return res.status(200).json({ status: "OK", message: "Backend nativo corregido y listo." });
+    }
 
-        if (!message) {
-            return res.status(400).json({ error: "El mensaje está vacío" });
-        }
-
-        // Llamada usando la estructura del nuevo SDK
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: message,
-            config: {
-                systemInstruction: "Eres un psicólogo experto en salud mental, especializado en TDAH y ansiedad. Tu enfoque es empático, estructurado y libre de juicio. Ayuda al usuario a desahogarse y organiza sus ideas."
+    // 3. Soporte para el método POST (Envío de mensajes)
+    if (req.method === 'POST') {
+        try {
+            const { message } = req.body;
+            if (!message) {
+                return res.status(400).json({ error: "El mensaje está vacío." });
             }
-        });
 
-        // El nuevo SDK devuelve el texto directamente en response.text
-        const respuestaIA = response.text || "No se generó texto.";
-        return res.status(200).json({ reply: respuestaIA });
+            // Inicialización usando exactamente la clase importada
+            const ai = new GoogleGenerativeAI(apiKey);
+            const model = ai.getGenerativeModel({ 
+                model: 'gemini-1.5-flash',
+                systemInstruction: "Eres un psicólogo experto en salud mental, especializado en TDAH y ansiedad. Tu enfoque es empático, estructurado y libre de juicio. Ayuda al usuario a desahogarse y organiza sus ideas."
+            });
 
-    } catch (error) {
-        console.error("Error detallado en la API:", error);
-        return res.status(500).json({ 
-            error: "Error interno en el backend de Google AI", 
-            message: error.message 
-        });
+            const result = await model.generateContent(message);
+            const response = await result.response;
+            const respuestaIA = response.text();
+
+            return res.status(200).json({ reply: respuestaIA });
+
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ error: "Error en el servicio de IA", detalle: error.message });
+        }
     }
-});
 
-export default app;
+    return res.status(405).json({ error: "Método no permitido" });
+}
