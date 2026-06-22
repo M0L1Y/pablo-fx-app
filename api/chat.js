@@ -1,35 +1,53 @@
+// api/chat.js
 module.exports = async function handler(req, res) {
+    // Configuración CORS
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     res.setHeader('Content-Type', 'application/json');
 
-<<<<<<< HEAD
-// Cambia la línea de la clave quemada por esta para que lea a Vercel de forma segura
-    const apiKey = process.env.GROQ_API_KEY ? process.env.GROQ_API_KEY.trim() : null;
+    // Manejo de OPTIONS
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
 
+    // Verificar API Key
+    const apiKey = process.env.GROQ_API_KEY?.trim();
+    
     if (!apiKey) {
-        return res.status(500).json({ reply: "Error: La clave GROQ_API_KEY no está configurada en Vercel." });
+        console.error("GROQ_API_KEY no configurada");
+        return res.status(500).json({ 
+            reply: "Error de configuración del servidor." 
+        });
     }
 
-=======
-    // Clave quemada directamente para saltarnos a Vercel
-const apiKey = process.env.GROQ_API_KEY ? process.env.GROQ_API_KEY.trim() : null;
->>>>>>> 2a6101c6be887c8dd448ae1c7cce82b7d7a9db73
+    // GET - Estado
     if (req.method === 'GET') {
-        return res.status(200).json({ status: "OK", message: "Servidor Groq forzado listo." });
+        return res.status(200).json({ 
+            status: "OK", 
+            message: "Servidor Groq funcionando correctamente" 
+        });
     }
 
+    // POST - Procesar mensaje
     if (req.method === 'POST') {
         try {
-            const message = req.body && req.body.message;
+            const { message } = req.body;
+            
             if (!message) {
-                return res.status(400).json({ reply: "El mensaje llegó vacío." });
+                return res.status(400).json({ 
+                    reply: "Por favor, escribe un mensaje." 
+                });
             }
+
+            console.log("📨 Mensaje recibido");
 
             const requestBody = {
                 model: "llama3-8b-8192",
                 messages: [
                     {
                         role: "system",
-                        content: "Eres un psicólogo experto en salud mental, especializado en TDAH y ansiedad. Tu enfoque es empático, estructurado y libre de juicio. Ayuda al usuario a desahogarse y organiza sus ideas."
+                        content: "Eres un psicólogo experto en salud mental. Responde de manera empática y profesional."
                     },
                     {
                         role: "user",
@@ -52,19 +70,26 @@ const apiKey = process.env.GROQ_API_KEY ? process.env.GROQ_API_KEY.trim() : null
             const data = await response.json();
 
             if (!response.ok) {
-                return res.status(response.status).json({
-                    reply: "Error de conexión con el motor de IA.",
-                    detalle: data.error ? data.error.message : JSON.stringify(data)
+                console.error("❌ Error Groq:", data);
+                return res.status(response.status).json({ 
+                    reply: data.error?.message || "Error al procesar tu mensaje." 
                 });
             }
 
             const respuestaIA = data.choices?.[0]?.message?.content;
-            return res.status(200).json({ reply: respuestaIA || "No se recibió texto." });
+
+            if (!respuestaIA) {
+                return res.status(500).json({ 
+                    reply: "No pude generar una respuesta en este momento." 
+                });
+            }
+
+            return res.status(200).json({ reply: respuestaIA });
 
         } catch (error) {
+            console.error("🔥 Error:", error);
             return res.status(500).json({ 
-                reply: "Error crítico en el servidor del chat.", 
-                detalle: error.message 
+                reply: "Error interno del servidor. Intenta de nuevo." 
             });
         }
     }
