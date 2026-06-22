@@ -1,6 +1,7 @@
 module.exports = async function handler(req, res) {
     res.setHeader('Content-Type', 'application/json');
 
+<<<<<<< HEAD
 // Cambia la línea de la clave quemada por esta para que lea a Vercel de forma segura
     const apiKey = process.env.GROQ_API_KEY ? process.env.GROQ_API_KEY.trim() : null;
 
@@ -8,18 +9,21 @@ module.exports = async function handler(req, res) {
         return res.status(500).json({ reply: "Error: La clave GROQ_API_KEY no está configurada en Vercel." });
     }
 
+=======
+    // Clave quemada directamente para saltarnos a Vercel
+const apiKey = process.env.GROQ_API_KEY ? process.env.GROQ_API_KEY.trim() : null;
+>>>>>>> 2a6101c6be887c8dd448ae1c7cce82b7d7a9db73
     if (req.method === 'GET') {
-        return res.status(200).json({ status: "OK", message: "Servidor Groq listo." });
+        return res.status(200).json({ status: "OK", message: "Servidor Groq forzado listo." });
     }
 
     if (req.method === 'POST') {
         try {
             const message = req.body && req.body.message;
             if (!message) {
-                return res.status(400).json({ reply: "El mensaje llegó vacío al servidor." });
+                return res.status(400).json({ reply: "El mensaje llegó vacío." });
             }
 
-            // Estructura oficial de Groq en formato Chat Completions
             const requestBody = {
                 model: "llama3-8b-8192",
                 messages: [
@@ -36,8 +40,7 @@ module.exports = async function handler(req, res) {
                 max_tokens: 1024
             };
 
-            // Llamada directa a los servidores de Groq
-            const googleResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -46,29 +49,21 @@ module.exports = async function handler(req, res) {
                 body: JSON.stringify(requestBody)
             });
 
-            const data = await googleResponse.json();
+            const data = await response.json();
 
-            if (!googleResponse.ok) {
-                console.error("Error directo de Groq API:", data);
-                return res.status(googleResponse.status).json({
-                    reply: "Groq rechazó la conexión.",
+            if (!response.ok) {
+                return res.status(response.status).json({
+                    reply: "Error de conexión con el motor de IA.",
                     detalle: data.error ? data.error.message : JSON.stringify(data)
                 });
             }
 
-            // Extraemos el texto de la respuesta de Groq
             const respuestaIA = data.choices?.[0]?.message?.content;
-
-            if (!respuestaIA) {
-                return res.status(500).json({ reply: "Groq no devolvió texto en la respuesta." });
-            }
-
-            return res.status(200).json({ reply: respuestaIA });
+            return res.status(200).json({ reply: respuestaIA || "No se recibió texto." });
 
         } catch (error) {
-            console.error("Error en el fetch de Groq:", error);
             return res.status(500).json({ 
-                reply: "Error crítico al procesar la petición con Groq.", 
+                reply: "Error crítico en el servidor del chat.", 
                 detalle: error.message 
             });
         }
