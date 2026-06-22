@@ -1,7 +1,8 @@
 module.exports = async function handler(req, res) {
     res.setHeader('Content-Type', 'application/json');
 
-const apiKey = "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";
+// Cambia la línea de la clave quemada por esta para que lea a Vercel de forma segura
+    const apiKey = process.env.GROQ_API_KEY ? process.env.GROQ_API_KEY.trim() : null;
 
     if (!apiKey) {
         return res.status(500).json({ reply: "Error: La clave GROQ_API_KEY no está configurada en Vercel." });
